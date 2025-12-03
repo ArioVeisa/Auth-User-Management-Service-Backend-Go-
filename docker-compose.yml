@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: auth-service:latest
+    ports:
+      - "8081:8080"
+    environment:
+      - APP_ENV=dev
+      - PORT=8080
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/authdb?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - JWT_SIGNING_KEY=your-super-secret-key-change-in-production
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=arioveisa@gmail.com
+      - SMTP_PASSWORD=zsaqrefvabyxkdsi
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=authdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_init_schema.up.sql:/docker-entrypoint-initdb.d/001_init.sql
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
